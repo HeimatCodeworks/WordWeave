@@ -1,13 +1,12 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Firebase.Auth;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Maui.Controls.Hosting;
 using Microsoft.Maui.Hosting;
-using Microsoft.Extensions.DependencyInjection;
+using System.IO;
 using WordWeave.Repositories;
 using WordWeave.Services;
-using Microsoft.EntityFrameworkCore;
-using FileSystem = Microsoft.Maui.Storage.FileSystem;
-using Path = System.IO.Path;
-
 
 namespace WordWeave;
 
@@ -16,6 +15,32 @@ public static class MauiProgram
     public static MauiApp CreateMauiApp()
     {
         var builder = MauiApp.CreateBuilder();
+
+        var configFileName = "firebaseConfig.Production.json";
+
+#if DEBUG
+        configFileName = "firebaseConfig.Development.json";
+#endif
+
+        var config = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile(configFileName, optional: false, reloadOnChange: true)
+            .Build();
+
+        var firebaseConfig = config.GetSection("Firebase");
+
+        var firebaseApiKey = firebaseConfig["ApiKey"];
+        var firebaseAuthDomain = firebaseConfig["AuthDomain"];
+        var firebaseProjectId = firebaseConfig["ProjectId"];
+
+        var authProvider = new FirebaseAuthProvider(new FirebaseConfig(firebaseApiKey));
+        builder.Services.AddSingleton(authProvider);
+
+        builder.Services.AddSingleton<FirestoreService>();
+
+        builder.Services.AddScoped<IUserRepository, UserRepository>();
+        builder.Services.AddScoped<UserService>();
+
         builder
             .UseMauiApp<App>()
             .ConfigureFonts(fonts =>
@@ -27,15 +52,6 @@ public static class MauiProgram
 #if DEBUG
         builder.Logging.AddDebug();
 #endif
-
-        builder.Services.AddDbContext<ApplicationDbContext>(options =>
-        {
-            var dbPath = Path.Combine(FileSystem.AppDataDirectory, "WordWeave.db3");
-            options.UseSqlite($"Filename={dbPath}");
-        });
-
-        builder.Services.AddScoped<IUserRepository, UserRepository>();
-        builder.Services.AddScoped<UserService>();
 
         return builder.Build();
     }

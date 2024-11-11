@@ -3,3 +3,5 @@ obj/
 /packages/
 riderModule.iml
 /_ReSharper.Caches/
+firebaseConfig.Development.json
+firebaseConfig.Production.json
