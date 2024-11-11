@@ -2,16 +2,19 @@
 using System.Threading.Tasks;
 using Firebase.Auth;
 using WordWeave.Models;
+using WordWeave.Repositories;
 
-namespace MyProject.Services
+namespace WordWeave.Services
 {
     public class UserService
     {
         private readonly FirebaseAuthProvider _authProvider;
+        private readonly IUserRepository _userRepository;
 
-        public UserService(FirebaseAuthProvider authProvider)
+        public UserService(FirebaseAuthProvider authProvider, IUserRepository userRepository)
         {
             _authProvider = authProvider;
+            _userRepository = userRepository;
         }
 
         public async Task<FirebaseAuthLink> RegisterUserAsync(string email, string password)
@@ -19,6 +22,14 @@ namespace MyProject.Services
             try
             {
                 var authLink = await _authProvider.CreateUserWithEmailAndPasswordAsync(email, password);
+                var newUser = new WordWeave.Models.User
+                {
+                    UserId = authLink.User.LocalId,
+                    Email = email,
+                    Username = email.Split('@')[0],
+                    IsPremium = email.EndsWith("@kochava.com")
+                };
+                await _userRepository.CreateUserAsync(newUser);
                 return authLink;
             }
             catch (Exception ex)
@@ -45,13 +56,13 @@ namespace MyProject.Services
             
         }
 
-        public async Task<User> GetUserProfileAsync(string userId)
+        public async Task<WordWeave.Models.User> GetUserProfileAsync(string userId)
         {
             var user = await _userRepository.GetUserByIdAsync(userId);
             return user;
         }
 
-        public async Task<bool> UpdateUserProfileAsync(User user)
+        public async Task<bool> UpdateUserProfileAsync(WordWeave.Models.User user)
         {
             try
             {

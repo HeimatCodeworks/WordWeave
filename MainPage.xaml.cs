@@ -1,4 +1,8 @@
-﻿namespace WordWeave;
+﻿using System;
+using Microsoft.Maui.Accessibility;
+using Microsoft.Maui.Controls;
+
+namespace WordWeave;
 
 public partial class MainPage : ContentPage
 {

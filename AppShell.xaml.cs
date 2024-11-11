@@ -1,4 +1,6 @@
-﻿namespace WordWeave;
+﻿using Microsoft.Maui.Controls;
+
+namespace WordWeave;
 
 public partial class AppShell : Shell
 {

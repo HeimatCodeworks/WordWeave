@@ -15,7 +15,7 @@ namespace WordWeave.Repositories
     
         public async Task<User> GetUserByIdAsync(string userId)
         {
-            return await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            return await _context.Users.FirstOrDefaultAsync(u => u.UserId == userId);
         }
         
         public async Task<bool> UpdateUserAsync(User user)
